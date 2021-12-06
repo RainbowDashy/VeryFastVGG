@@ -2,7 +2,7 @@
 
 It's faster than me!
 
-# Build
+## Build
 
 Make sure you have `gcc`, `make`, `cmake` and `openmp` installed.
 
