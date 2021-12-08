@@ -1,8 +1,16 @@
 CC = gcc
+PYTHON = python3
+
 BUILD_DIR = build
 CMAKE_BUILD_TYPE ?= Debug
 
-.PHONY: build configure clean
+WEIGHTS_PATH = data/weights.txt
+IMAGE_PATH = data/image.txt
+OUTPUT_FILE = data/output.txt
+ORIGIN_IMAGE_PATH = data/image.png
+ORIGIN_IMAGE_URL = https://s3.amazonaws.com/model-server/inputs/kitten.jpg
+
+.PHONY: build configure clean data
 
 build: configure
 	cmake --build $(BUILD_DIR)
@@ -12,3 +20,17 @@ configure:
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+run: build data
+	$(BUILD_DIR)/vgg11_bn $(WEIGHTS_PATH) $(IMAGE_PATH) $(OUTPUT_FILE)
+
+data: $(WEIGHTS_PATH) $(IMAGE_PATH)
+
+$(WEIGHTS_PATH): data/weights.py
+	$(PYTHON) data/weights.py $(WEIGHTS_PATH)
+
+$(IMAGE_PATH): data/image.py $(ORIGIN_IMAGE_PATH)
+	$(PYTHON) data/image.py $(ORIGIN_IMAGE_PATH) $(IMAGE_PATH)
+
+$(ORIGIN_IMAGE_PATH):
+	curl -o $(ORIGIN_IMAGE_PATH) $(ORIGIN_IMAGE_URL)

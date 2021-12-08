@@ -56,3 +56,7 @@ dkms.conf
 
 # Build files
 build/
+
+# Data files
+data/*.txt
+data/*.png
