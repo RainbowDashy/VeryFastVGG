@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "matrix.h"
 
 void help() {
   const char *help_str = 
