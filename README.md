@@ -41,7 +41,7 @@ make clean
 - [ ] nn.Linear
 - [ ] nn.Dropout
 - [ ] nn.AdaptiveAvgPool2d
-- [ ] torch.Flaten
+- [x] torch.Flatten
 
 ## Reference
 
