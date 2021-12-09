@@ -39,7 +39,7 @@ make clean
 - [x] nn.ReLU
 - [ ] nn.MaxPool2d
 - [ ] nn.Linear
-- [ ] nn.Dropout
+- [x] nn.Dropout
 - [ ] nn.AdaptiveAvgPool2d
 - [x] torch.Flatten
 

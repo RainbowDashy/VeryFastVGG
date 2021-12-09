@@ -41,3 +41,16 @@ void ReLUInplace(Matrix *input) {
         input->v[i] = input->v[i] > 0 ? input->v[i] : 0;
     }
 }
+
+void Dropout(Matrix *input, Matrix *output) {
+    for (int i = 0; i < msize(input); ++i) {
+        output->v[i] = (rand() & 1) ? 0 : input->v[i];
+    }
+}
+
+void DropoutInplace(Matrix *input) {
+    for (int i = 0; i < msize(input); ++i) {
+        if (rand() & 1)
+            input->v[i] = 0;
+    }
+}
