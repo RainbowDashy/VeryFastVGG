@@ -35,7 +35,7 @@ make clean
 ## TODO
 - [ ] Input & Output
 - [ ] nn.Conv2d
-- [ ] nn.BatchNorm2d
+- [x] nn.BatchNorm2d
 - [x] nn.ReLU
 - [ ] nn.MaxPool2d
 - [ ] nn.Linear

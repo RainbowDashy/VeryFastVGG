@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 typedef long double db;
 
@@ -54,3 +55,32 @@ void DropoutInplace(Matrix *input) {
             input->v[i] = 0;
     }
 }
+
+db mmean(db *v, int size) {
+    db res = 0;
+    for (int i = 0; i < size; ++i)
+        res += v[i];
+    res /= size;
+    return res;
+}
+
+db mvar(db *v, int size, db mean) {
+    db res = 0;
+    for (int i = 0; i < size; ++i) {
+        res += (v[i] - mean) * (v[i] - mean);
+    }
+    if (size > 1) res /= size - 1;
+    return res;
+}
+
+void BatchNorm2d(Matrix *input, Matrix *output) {
+    db eps = 1e-5;
+    for (int i = 0; i < msize(input); i += input->c * input->d) {
+        db mean = mmean(input->v + i, input->c * input->d);
+        db var = mvar(input->v + i, input->c * input->d, mean);
+        for (int j = i; j < i + input->c * input->d; ++j) {
+            output->v[j] = (input->v[j]-mean) / (sqrt(var) + eps);
+        }
+    }
+}
+
