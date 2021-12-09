@@ -36,7 +36,7 @@ make clean
 - [ ] Input & Output
 - [ ] nn.Conv2d
 - [ ] nn.BatchNorm2d
-- [ ] nn.ReLU
+- [x] nn.ReLU
 - [ ] nn.MaxPool2d
 - [ ] nn.Linear
 - [ ] nn.Dropout
