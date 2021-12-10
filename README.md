@@ -40,7 +40,7 @@ make clean
 - [x] nn.MaxPool2d
 - [x] nn.Linear
 - [x] nn.Dropout
-- [ ] nn.AdaptiveAvgPool2d
+- [x] nn.AdaptiveAvgPool2d
 - [x] torch.Flatten
 
 ## Reference

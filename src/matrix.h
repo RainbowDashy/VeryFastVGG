@@ -115,3 +115,23 @@ void MaxPool2d(Matrix *input, Matrix *output) {
         }
     }
 }
+
+// output_size = (7, 7)
+// NOT adaptive!
+void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
+    int tot = 0;
+    int size = input->c / 7;
+    for (int s = 0; s < msize(input); s += input->c * input->d) {
+        for (int ii = 0; ii < input->c; ii += size) {
+            for (int jj = 0; jj < input->d; jj += size) {
+                db avg = 0;
+                for (int i = ii; i < ii + size; ++i) {
+                    for (int j = jj; j < jj + size; ++j) {
+                        avg += input->v[s + ii*input->d + jj];
+                    }
+                }
+                output->v[tot++] = avg / (size * size);
+            }
+        }
+    }
+}
