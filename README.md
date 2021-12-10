@@ -37,7 +37,7 @@ make clean
 - [ ] nn.Conv2d
 - [x] nn.BatchNorm2d
 - [x] nn.ReLU
-- [ ] nn.MaxPool2d
+- [x] nn.MaxPool2d
 - [x] nn.Linear
 - [x] nn.Dropout
 - [ ] nn.AdaptiveAvgPool2d

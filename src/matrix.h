@@ -91,3 +91,27 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
             output->v[i] += weight->v[i * weight->c + j] * input->v[j];
     }
 }
+
+db max2(db a, db b) {
+    return a > b ? a : b;
+}
+
+db max4(db a, db b, db c, db d) {
+    return max2(a, max2(b, max2(c, d)));
+}
+
+// kernel_size=2 stride=2
+void MaxPool2d(Matrix *input, Matrix *output) {
+    int tot = 0;
+    for (int s = 0; s < msize(input); s += input->c * input->d) {
+        for (int ii = 0; ii < input->c; ii += 2) {
+            for (int jj = 0; jj < input->d; jj += 2) {
+                output->v[tot++] = max4(input->v[s + ii*input->d + jj], 
+                                        input->v[s + ii*input->d + jj + 1],
+                                        input->v[s + (ii+1)*input->d + jj],
+                                        input->v[s + (ii+1)*input->d + jj + 1]);
+
+            }
+        }
+    }
+}
