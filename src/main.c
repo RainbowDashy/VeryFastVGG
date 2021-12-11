@@ -34,6 +34,38 @@ void solve(const char **argv) {
             ReLUInplace(input);
         }
     }
+    AdaptiveAvgPool2d(input, output);
+    mswap(&input, &output);
+
+    // flatten
+    input->d = msize(input);
+    input->a = 1;
+    input->b = 1;
+    input->c = 1;
+
+    minit(weight, 1, 1, 4096, 512 * 7 * 7, weightFD);
+    minit(bias, 1, 1, 1, 4096, weightFD);
+    Linear(input, weight, bias, output);
+    mswap(&input, &output);
+
+    ReLUInplace(input);
+
+    DropoutInplace(input);
+
+    minit(weight, 1, 1, 4096, 4096, weightFD);
+    minit(bias, 1, 1, 1, 4096, weightFD);
+    Linear(input, weight, bias, output);
+    mswap(&input, &output);
+
+    ReLUInplace(input);
+
+    DropoutInplace(input);
+
+    minit(weight, 1, 1, 1000, 4096, weightFD);
+    minit(bias, 1, 1, 1, 4096, weightFD);
+    Linear(input, weight, bias, output);
+
+    mprint(output);
 }
 
 int main(int argc, char const *argv[]) {
