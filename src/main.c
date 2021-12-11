@@ -14,11 +14,26 @@ void solve(const char **argv) {
     FILE *inputFD = fopen(argv[2], "r");
     FILE *outputFD = fopen(argv[3], "w");
 
-    Matrix input;
-    mshape(&input, 1, 3, 224, 224);
-    mcreate(&input);
-    mread(&input, inputFD);
-    mprint(&input);
+    Matrix *input = mnew(), *weight = mnew(), *bias = mnew(), *output = mnew();
+    minit(input, 1, 3, 224, 224, inputFD);
+
+    int feature[13] = {64, -1, 128, -1, 256, 256, -1, 512, 512, -1, 512, 512, -1};
+    for (int i = 0; i < 13; ++i) {
+        if (feature[i] == -1) {
+            MaxPool2d(input, output);
+            mswap(&input, &output);
+        } else {
+            minit(weight, feature[i], input->b, 3, 3, weightFD);
+            minit(bias, 1, 1, 1, feature[i], weightFD);
+            Conv2d(input, weight, bias, output);
+            mswap(&input, &output);
+            minit(weight, 1, 1, 1, input->b, weightFD);
+            minit(bias, 1, 1, 1, input->b, weightFD);
+            BatchNorm2d(input, weight, bias, output);
+            mswap(&input, &output);
+            ReLUInplace(input);
+        }
+    }
 }
 
 int main(int argc, char const *argv[]) {
