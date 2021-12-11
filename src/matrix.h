@@ -21,6 +21,9 @@ int mpos(Matrix *m, int i, int j, int k, int l) {
 db mget(Matrix *m, int i, int j, int k, int l) {
     return m->v[mpos(m, i, j, k, l)];
 }
+void mset(Matrix *m, int i, int j, int k, int l, db v) {
+    m->v[mpos(m, i, j, k, l)] = v;
+}
 
 void mcreate(Matrix *m) {
     m->v = (db*) malloc(sizeof(db) * m->a * m->b * m->c * m->d);
@@ -134,4 +137,32 @@ void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
             }
         }
     }
+}
+
+void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+    // n
+    output->a = input->a;
+    output->b = weight->a;
+    output->c = input->c;
+    output->d = input->d;
+    // the axis of output
+    for (int oi = 0; oi < weight->a; ++oi)
+        for (int oj = 0; oj < output->c; ++oj)
+            for (int ok = 0; ok < output->d; ++ok) {
+                db sum = bias->v[oi];
+                // the axis of weight
+                for (int ii = 0; ii < weight->b; ++ii)
+                    for (int jj = 0; jj < 3; ++jj)
+                        for (int kk = 0; kk < 3; ++kk) {
+                            // the axis of input
+                            // input[0][ii][oj + jj][ok + kk]
+                            if (oj + jj == 0 || oj + jj == input->c + 1 ||
+                                ok + kk == 0 || ok + kk == input->d + 1) {
+                                    // it's padding
+                            } else {
+                                sum += mget(input, 0, ii, oj + jj - 1, ok + kk - 1) * mget(weight, oi, ii, jj, kk);
+                            }
+                        }
+                mset(output, 0, oi, oj, ok, sum);
+            }
 }
