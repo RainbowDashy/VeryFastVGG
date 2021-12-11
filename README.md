@@ -33,7 +33,7 @@ make clean
 ```
 
 ## TODO
-- [ ] Input & Output
+- [x] Input & Output
 - [x] nn.Conv2d
 - [x] nn.BatchNorm2d
 - [x] nn.ReLU
