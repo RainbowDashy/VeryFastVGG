@@ -1,7 +1,7 @@
 #pragma once
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 typedef long double db;
 
@@ -17,12 +17,10 @@ void mshape(Matrix *m, int a, int b, int c, int d) {
     m->d = d;
 }
 
-int msize(Matrix *m) {
-    return m->a * m->b * m->c * m->d;
-}
+int msize(Matrix *m) { return m->a * m->b * m->c * m->d; }
 
 int mpos(Matrix *m, int i, int j, int k, int l) {
-    return i * m->b * m->c * m->d + j * m->c * m->d + k * m-> d + l;
+    return i * m->b * m->c * m->d + j * m->c * m->d + k * m->d + l;
 }
 
 db mget(Matrix *m, int i, int j, int k, int l) {
@@ -33,12 +31,32 @@ void mset(Matrix *m, int i, int j, int k, int l, db v) {
 }
 
 void mcreate(Matrix *m) {
-    m->v = (db*) malloc(sizeof(db) * m->a * m->b * m->c * m->d);
+    m->v = (db *)malloc(sizeof(db) * m->a * m->b * m->c * m->d);
 }
 
 void mread(Matrix *m, FILE *fd) {
-    for (int i = 0; i < msize(m); ++i)
-        fscanf(fd, "%Lf", &m->v[i]);
+    for (int i = 0; i < msize(m); ++i) fscanf(fd, "%Lf", &m->v[i]);
+}
+
+void mprint(Matrix *m) {
+    printf("\n\n%d %d %d %d\n", m->a, m->b, m->c, m->d);
+    printf("[");
+    for (int i = 0; i < m->a; ++i) {
+        printf("[");
+        for (int j = 0; j < m->b; ++j) {
+            printf("[");
+            for (int k = 0; k < m->c; ++k) {
+                printf("[");
+                for (int l = 0; l < m->d; ++l) {
+                    printf("%.2Lf ", mget(m, i, j, k, l));
+                }
+                printf("] ");
+            }
+            printf("]\n");
+        }
+        printf("] ");
+    }
+    printf("]\n");
 }
 
 void ReLU(Matrix *input, Matrix *output) {
@@ -61,15 +79,13 @@ void Dropout(Matrix *input, Matrix *output) {
 
 void DropoutInplace(Matrix *input) {
     for (int i = 0; i < msize(input); ++i) {
-        if (rand() & 1)
-            input->v[i] = 0;
+        if (rand() & 1) input->v[i] = 0;
     }
 }
 
 db mmean(db *v, int size) {
     db res = 0;
-    for (int i = 0; i < size; ++i)
-        res += v[i];
+    for (int i = 0; i < size; ++i) res += v[i];
     res /= size;
     return res;
 }
@@ -86,11 +102,14 @@ db mvar(db *v, int size, db mean) {
 void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     db eps = 1e-5;
     // this should only work when input->a = 1
-    for (int i = 0, idx = 0; i < msize(input); i += input->c * input->d, ++idx) {
+    for (int i = 0, idx = 0; i < msize(input);
+         i += input->c * input->d, ++idx) {
         db mean = mmean(input->v + i, input->c * input->d);
         db var = mvar(input->v + i, input->c * input->d, mean);
         for (int j = i; j < i + input->c * input->d; ++j) {
-            output->v[j] = (input->v[j]-mean) / (sqrt(var) + eps) * weight->v[idx] + bias->v[idx];
+            output->v[j] =
+                (input->v[j] - mean) / (sqrt(var) + eps) * weight->v[idx] +
+                bias->v[idx];
         }
     }
 }
@@ -103,13 +122,9 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     }
 }
 
-db max2(db a, db b) {
-    return a > b ? a : b;
-}
+db max2(db a, db b) { return a > b ? a : b; }
 
-db max4(db a, db b, db c, db d) {
-    return max2(a, max2(b, max2(c, d)));
-}
+db max4(db a, db b, db c, db d) { return max2(a, max2(b, max2(c, d))); }
 
 // kernel_size=2 stride=2
 void MaxPool2d(Matrix *input, Matrix *output) {
@@ -117,11 +132,11 @@ void MaxPool2d(Matrix *input, Matrix *output) {
     for (int s = 0; s < msize(input); s += input->c * input->d) {
         for (int ii = 0; ii < input->c; ii += 2) {
             for (int jj = 0; jj < input->d; jj += 2) {
-                output->v[tot++] = max4(input->v[s + ii*input->d + jj], 
-                                        input->v[s + ii*input->d + jj + 1],
-                                        input->v[s + (ii+1)*input->d + jj],
-                                        input->v[s + (ii+1)*input->d + jj + 1]);
-
+                output->v[tot++] =
+                    max4(input->v[s + ii * input->d + jj],
+                         input->v[s + ii * input->d + jj + 1],
+                         input->v[s + (ii + 1) * input->d + jj],
+                         input->v[s + (ii + 1) * input->d + jj + 1]);
             }
         }
     }
@@ -138,7 +153,7 @@ void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
                 db avg = 0;
                 for (int i = ii; i < ii + size; ++i) {
                     for (int j = jj; j < jj + size; ++j) {
-                        avg += input->v[s + ii*input->d + jj];
+                        avg += input->v[s + ii * input->d + jj];
                     }
                 }
                 output->v[tot++] = avg / (size * size);
@@ -166,9 +181,11 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                             // input[0][ii][oj + jj][ok + kk]
                             if (oj + jj == 0 || oj + jj == input->c + 1 ||
                                 ok + kk == 0 || ok + kk == input->d + 1) {
-                                    // it's padding
+                                // it's padding
                             } else {
-                                sum += mget(input, 0, ii, oj + jj - 1, ok + kk - 1) * mget(weight, oi, ii, jj, kk);
+                                sum += mget(input, 0, ii, oj + jj - 1,
+                                            ok + kk - 1) *
+                                       mget(weight, oi, ii, jj, kk);
                             }
                         }
                 mset(output, 0, oi, oj, ok, sum);
