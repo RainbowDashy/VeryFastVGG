@@ -10,6 +10,13 @@ typedef struct {
     db *v;
 } Matrix;
 
+void mshape(Matrix *m, int a, int b, int c, int d) {
+    m->a = a;
+    m->b = b;
+    m->c = c;
+    m->d = d;
+}
+
 int msize(Matrix *m) {
     return m->a * m->b * m->c * m->d;
 }
