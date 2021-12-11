@@ -83,13 +83,14 @@ db mvar(db *v, int size, db mean) {
     return res;
 }
 
-void BatchNorm2d(Matrix *input, Matrix *output) {
+void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     db eps = 1e-5;
-    for (int i = 0; i < msize(input); i += input->c * input->d) {
+    // this should only work when input->a = 1
+    for (int i = 0, idx = 0; i < msize(input); i += input->c * input->d, ++idx) {
         db mean = mmean(input->v + i, input->c * input->d);
         db var = mvar(input->v + i, input->c * input->d, mean);
         for (int j = i; j < i + input->c * input->d; ++j) {
-            output->v[j] = (input->v[j]-mean) / (sqrt(var) + eps);
+            output->v[j] = (input->v[j]-mean) / (sqrt(var) + eps) * weight->v[idx] + bias->v[idx];
         }
     }
 }
