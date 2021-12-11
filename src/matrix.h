@@ -37,9 +37,9 @@ void mswap(Matrix **a, Matrix **b) {
 }
 
 void mallo(Matrix *m) {
-    // if (m->v != NULL) {
-    //     free(m->v);
-    // }
+    if (m->v != NULL) {
+        free(m->v);
+    }
     m->v = (db *)malloc(sizeof(db) * m->a * m->b * m->c * m->d);
 }
 
@@ -81,7 +81,7 @@ void mprint(Matrix *m) {
 }
 
 void ReLU(Matrix *input, Matrix *output) {
-    *output = *input;
+    mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     for (int i = 0; i < msize(input); ++i) {
         output->v[i] = input->v[i] > 0 ? input->v[i] : 0;
@@ -95,7 +95,7 @@ void ReLUInplace(Matrix *input) {
 }
 
 void Dropout(Matrix *input, Matrix *output) {
-    *output = *input;
+    mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     for (int i = 0; i < msize(input); ++i) {
         output->v[i] = (rand() & 1) ? 0 : input->v[i];
@@ -125,7 +125,7 @@ db mvar(db *v, int size, db mean) {
 }
 
 void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
-    *output = *input;
+    mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     db eps = 1e-5;
     // this should only work when input->a = 1
@@ -142,8 +142,7 @@ void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
 }
 
 void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
-    *output = *input;
-    output->d = weight->c;
+    mshape(output, input->a, input->b, input->c, weight->c);
     mallo(output);
     for (int i = 0; i < weight->c; ++i) {
         output->v[i] = bias->v[i];
@@ -158,9 +157,7 @@ db max4(db a, db b, db c, db d) { return max2(a, max2(b, max2(c, d))); }
 
 // kernel_size=2 stride=2
 void MaxPool2d(Matrix *input, Matrix *output) {
-    *output = *input;
-    output->c = input->c / 2;
-    output->d = input->d / 2;
+    mshape(output, input->a, input->b, input->c / 2, input->d / 2);
     mallo(output);
     int tot = 0;
     for (int s = 0; s < msize(input); s += input->c * input->d) {
@@ -179,8 +176,7 @@ void MaxPool2d(Matrix *input, Matrix *output) {
 // output_size = (7, 7)
 // NOT adaptive!
 void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
-    *output = *input;
-    output->c = output->d = 7;
+    mshape(output, input->a, input->b, 7, 7);
     mallo(output);
     int tot = 0;
     int size = input->c / 7;
@@ -201,10 +197,7 @@ void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
 
 void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     // n
-    output->a = input->a;
-    output->b = weight->a;
-    output->c = input->c;
-    output->d = input->d;
+    mshape(output, input->a, weight->a, input->c, input->d);
     mallo(output);
     // the axis of output
     for (int oi = 0; oi < weight->a; ++oi)
