@@ -42,6 +42,7 @@ make clean
 - [x] nn.Dropout
 - [x] nn.AdaptiveAvgPool2d
 - [x] torch.Flatten
+- [ ] Timing
 - [ ] Openmp
 - [ ] AVX
 - [ ] Loop unroll
