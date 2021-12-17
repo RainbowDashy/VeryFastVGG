@@ -42,7 +42,10 @@ make clean
 - [x] nn.Dropout
 - [x] nn.AdaptiveAvgPool2d
 - [x] torch.Flatten
-
+- [ ] Openmp
+- [ ] AVX
+- [ ] Loop unroll
+- [ ] Way to search optimal parameters
 ## Reference
 
 https://notes.sjtu.edu.cn/s/xegV8P0H-
