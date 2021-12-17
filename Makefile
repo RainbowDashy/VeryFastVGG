@@ -10,7 +10,9 @@ OUTPUT_FILE = data/output.txt
 ORIGIN_IMAGE_PATH = data/image.png
 ORIGIN_IMAGE_URL = https://s3.amazonaws.com/model-server/inputs/kitten.jpg
 
-.PHONY: build configure clean data
+MAKEFLAGS += --no-print-directory # suppress entering or leaving directory messages
+
+.PHONY: build configure clean run data
 
 build: configure
 	cmake --build $(BUILD_DIR)
