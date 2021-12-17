@@ -147,7 +147,7 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     for (int i = 0; i < weight->c; ++i) {
         output->v[i] = bias->v[i];
         for (int j = 0; j < weight->d; ++j)
-            output->v[i] += weight->v[i * weight->c + j] * input->v[j];
+            output->v[i] += weight->v[i * weight->d + j] * input->v[j];
     }
 }
 
