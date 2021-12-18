@@ -11,7 +11,7 @@ void enter() {
     clk = clock();
 }
 void leave(const char *msg) {
-    float t = (clock() - clk) / CLOCKS_PER_SEC;
+    float t = (float)(clock() - clk) / CLOCKS_PER_SEC;
     printf("%s\nElapsed time: %f\n", msg, t);
 }
 
