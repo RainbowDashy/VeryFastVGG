@@ -227,20 +227,27 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
             for (int ok = 0; ok < output->d; ++ok) {
                 db sum = bias->v[oi];
                 // the axis of weight
-                for (int ii = 0; ii < weight->b; ++ii)
-                    for (int jj = 0; jj < 3; ++jj)
-                        for (int kk = 0; kk < 3; ++kk) {
-                            // the axis of input
-                            // input[0][ii][oj + jj][ok + kk]
-                            if (oj + jj == 0 || oj + jj == input->c + 1 ||
-                                ok + kk == 0 || ok + kk == input->d + 1) {
-                                // it's padding
-                            } else {
-                                sum += mget(input, 0, ii, oj + jj - 1,
-                                            ok + kk - 1) *
-                                       mget(weight, oi, ii, jj, kk);
-                            }
-                        }
+                for (int ii = 0; ii < weight->b; ++ii) {
+                    #define _unroll(uj, uk) ({                          \
+                        int jj = uj, kk = uk;                           \
+                        if (oj + jj == 0 || oj + jj == input->c + 1 ||  \
+                            ok + kk == 0 || ok + kk == input->d + 1) {  \
+                        } else {                                        \
+                            sum += mget(input, 0, ii, oj + jj - 1,      \
+                                        ok + kk - 1) *                  \
+                                    mget(weight, oi, ii, jj, kk);       \
+                        }                                               \
+                    })
+                    _unroll(0, 0);
+                    _unroll(0, 1);
+                    _unroll(0, 2);
+                    _unroll(1, 0);
+                    _unroll(1, 1);
+                    _unroll(1, 2);
+                    _unroll(2, 0);
+                    _unroll(2, 1);
+                    _unroll(2, 2);
+                }
                 mset(output, 0, oi, oj, ok, sum);
             }
     leave("Conv2d");
