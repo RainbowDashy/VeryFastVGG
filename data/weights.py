@@ -10,6 +10,8 @@ if __name__ == "__main__":
   state_dict = model.state_dict()
   for name in state_dict:
     print(name, state_dict[name].shape)
+    if name.endswith("num_batches_tracked"):
+      continue
     tmp_data = state_dict[name].flatten().detach().numpy().astype(np.float32)
     for idx in range(tmp_data.__len__()):
       save_param.write(str(tmp_data[idx])+" ")
