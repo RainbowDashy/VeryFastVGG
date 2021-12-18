@@ -53,7 +53,7 @@ void minit(Matrix *m, int i, int j, int k, int l, FILE *fd) {
     mread(m, fd);
 }
 
-Matrix* mnew() {
+Matrix *mnew() {
     Matrix *ret = malloc(sizeof(Matrix));
     ret->v = NULL;
     return ret;
@@ -124,19 +124,18 @@ db mvar(db *v, int size, db mean) {
     return res;
 }
 
-void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
+                 Matrix *var, Matrix *output) {
     mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     db eps = 1e-5;
     // this should only work when input->a = 1
     for (int i = 0, idx = 0; i < msize(input);
          i += input->c * input->d, ++idx) {
-        db mean = mmean(input->v + i, input->c * input->d);
-        db var = mvar(input->v + i, input->c * input->d, mean);
         for (int j = i; j < i + input->c * input->d; ++j) {
-            output->v[j] =
-                (input->v[j] - mean) / (sqrt(var) + eps) * weight->v[idx] +
-                bias->v[idx];
+            output->v[j] = (input->v[j] - mean->v[idx]) /
+                               (sqrt(var->v[idx]) + eps) * weight->v[idx] +
+                           bias->v[idx];
         }
     }
 }
