@@ -11,7 +11,7 @@ void enter() {
 }
 void leave(const char *msg) {
     float t = (float)(clock() - clk) / CLOCKS_PER_SEC;
-    printf("%s\nElapsed time: %f\n", msg, t);
+    fprintf(stderr, "%s\nElapsed time: %f\n", msg, t);
 }
 
 typedef struct {

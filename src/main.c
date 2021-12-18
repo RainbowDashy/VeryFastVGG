@@ -79,6 +79,6 @@ int main(int argc, char const *argv[]) {
     clock_t start = clock(), diff;
     solve(argv);
     diff = clock() - start;
-    printf("Total time: %f\n", ((float)(diff) / CLOCKS_PER_SEC));
+    fprintf(stderr, "Total time: %f\n", ((float)(diff) / CLOCKS_PER_SEC));
     return 0;
 }
