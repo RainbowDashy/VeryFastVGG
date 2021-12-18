@@ -15,6 +15,7 @@ void solve(const char **argv) {
     FILE *outputFD = fopen(argv[3], "w");
 
     Matrix *input = mnew(), *weight = mnew(), *bias = mnew(), *output = mnew();
+    Matrix *mean = mnew(), *var = mnew();
     minit(input, 1, 3, 224, 224, inputFD);
 
     int feature[13] = {64, -1, 128, -1, 256, 256, -1, 512, 512, -1, 512, 512, -1};
@@ -29,6 +30,8 @@ void solve(const char **argv) {
             mswap(&input, &output);
             minit(weight, 1, 1, 1, input->b, weightFD);
             minit(bias, 1, 1, 1, input->b, weightFD);
+            minit(mean, 1, 1, 1, input->b, weightFD);
+            minit(var, 1, 1, 1, input->b, weightFD);
             BatchNorm2d(input, weight, bias, output);
             mswap(&input, &output);
             ReLUInplace(input);
