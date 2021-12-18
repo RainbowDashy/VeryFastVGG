@@ -4,19 +4,22 @@
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
+#include <string.h>
+
 typedef float db;
 
-clock_t clk;
+double clk;
 void enter() {
-    clk = clock();
+    clk = omp_get_wtime();
 }
 void leave(const char *msg) {
-    float t = (float)(clock() - clk) / CLOCKS_PER_SEC;
-    fprintf(stderr, "%s\nElapsed time: %f\n", msg, t);
+    double t = omp_get_wtime() - clk;
+    fprintf(stderr, "%s\nElapsed time: %lf\n", msg, t);
 }
 
 typedef struct {
     int a, b, c, d;
+    int allo;
     db *v;
 } Matrix;
 
@@ -27,13 +30,14 @@ void mshape(Matrix *m, int a, int b, int c, int d) {
     m->d = d;
 }
 
-int msize(Matrix *m) { return m->a * m->b * m->c * m->d; }
+#define msize(m) \
+    (m->a * m->b * m->c * m->d)
 
 #define mpos(m, i, j, k, l) \
     ((i) * m->b * m->c * m->d + (j) * m->c * m->d + (k) * m->d + (l))
 
 #define mget(m, i, j, k, l) \
-    m->v[mpos(m, i, j, k, l)]
+    (m->v[mpos(m, i, j, k, l)])
 
 void mset(Matrix *m, int i, int j, int k, int l, db v) {
     m->v[mpos(m, i, j, k, l)] = v;
@@ -46,25 +50,33 @@ void mswap(Matrix **a, Matrix **b) {
 }
 
 void mallo(Matrix *m) {
+    if (!m->allo)
+        return;
     if (m->v != NULL) {
         free(m->v);
     }
     m->v = (db *)malloc(sizeof(db) * m->a * m->b * m->c * m->d);
 }
 
-void mread(Matrix *m, FILE *fd) {
-    for (int i = 0; i < msize(m); ++i) fscanf(fd, "%f", &m->v[i]);
+void mread(Matrix *m, void **mem) {
+    int bytes = msize(m) * sizeof(db);
+    if (m->allo)
+        memcpy(m->v, *mem, bytes);
+    else
+        m->v = (db *) (*mem);
+    *mem += bytes;
 }
 
-void minit(Matrix *m, int i, int j, int k, int l, FILE *fd) {
+void minit(Matrix *m, int i, int j, int k, int l, void **mem) {
     mshape(m, i, j, k, l);
     mallo(m);
-    mread(m, fd);
+    mread(m, mem);
 }
 
-Matrix *mnew() {
+Matrix *mnew(int allo) {
     Matrix *ret = malloc(sizeof(Matrix));
     ret->v = NULL;
+    ret->allo = allo;
     return ret;
 }
 
