@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef long double db;
+typedef float db;
 
 typedef struct {
     int a, b, c, d;
@@ -19,13 +19,12 @@ void mshape(Matrix *m, int a, int b, int c, int d) {
 
 int msize(Matrix *m) { return m->a * m->b * m->c * m->d; }
 
-int mpos(Matrix *m, int i, int j, int k, int l) {
-    return i * m->b * m->c * m->d + j * m->c * m->d + k * m->d + l;
-}
+#define mpos(m, i, j, k, l) \
+    ((i) * m->b * m->c * m->d + (j) * m->c * m->d + (k) * m->d + (l))
 
-db mget(Matrix *m, int i, int j, int k, int l) {
-    return m->v[mpos(m, i, j, k, l)];
-}
+#define mget(m, i, j, k, l) \
+    m->v[mpos(m, i, j, k, l)]
+
 void mset(Matrix *m, int i, int j, int k, int l, db v) {
     m->v[mpos(m, i, j, k, l)] = v;
 }
@@ -44,7 +43,7 @@ void mallo(Matrix *m) {
 }
 
 void mread(Matrix *m, FILE *fd) {
-    for (int i = 0; i < msize(m); ++i) fscanf(fd, "%Lf", &m->v[i]);
+    for (int i = 0; i < msize(m); ++i) fscanf(fd, "%f", &m->v[i]);
 }
 
 void minit(Matrix *m, int i, int j, int k, int l, FILE *fd) {
@@ -69,7 +68,7 @@ void mprint(Matrix *m) {
             for (int k = 0; k < m->c; ++k) {
                 printf("[");
                 for (int l = 0; l < m->d; ++l) {
-                    printf("%.2Lf ", mget(m, i, j, k, l));
+                    printf("%.2f ", mget(m, i, j, k, l));
                 }
                 printf("]\n ");
             }
