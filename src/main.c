@@ -32,7 +32,7 @@ void solve(const char **argv) {
             minit(bias, 1, 1, 1, input->b, weightFD);
             minit(mean, 1, 1, 1, input->b, weightFD);
             minit(var, 1, 1, 1, input->b, weightFD);
-            BatchNorm2d(input, weight, bias, output);
+            BatchNorm2d(input, weight, bias, mean, var, output);
             mswap(&input, &output);
             ReLUInplace(input);
         }
