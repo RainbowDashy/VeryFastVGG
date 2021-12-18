@@ -95,6 +95,7 @@ void ReLUInplace(Matrix *input) {
 }
 
 void Dropout(Matrix *input, Matrix *output) {
+    return ;
     mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     for (int i = 0; i < msize(input); ++i) {
@@ -103,6 +104,7 @@ void Dropout(Matrix *input, Matrix *output) {
 }
 
 void DropoutInplace(Matrix *input) {
+    return ;
     for (int i = 0; i < msize(input); ++i) {
         if (rand() & 1) input->v[i] = 0;
     }
