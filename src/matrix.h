@@ -71,7 +71,7 @@ void mprint(Matrix *m) {
                 for (int l = 0; l < m->d; ++l) {
                     printf("%.2Lf ", mget(m, i, j, k, l));
                 }
-                printf("] ");
+                printf("]\n ");
             }
             printf("]\n");
         }

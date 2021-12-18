@@ -1,12 +1,13 @@
 from PIL import Image
 import numpy as np
 import sys
+from torchvision.transforms import ToTensor
 
 if __name__ == "__main__":
   image_path = sys.argv[1]
   output_path = sys.argv[2]
-  resized_image = Image.open(image_path).resize((224, 224))
-  img_data = np.asarray(resized_image).astype("float32")
-  img_data = np.transpose(img_data, [2, 0, 1]);
-  img_data = img_data.flatten()
-  np.savetxt(output_path, img_data, newline=" ")
+  img = Image.open(image_path).resize((224, 224))
+  img = ToTensor()(img)
+  img = img.numpy()
+  img = img.flatten()
+  np.savetxt(output_path, img, newline=" ")
