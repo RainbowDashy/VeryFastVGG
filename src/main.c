@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <omp.h>
 #include "matrix.h"
 
 void help() {
@@ -76,6 +77,7 @@ int main(int argc, char const *argv[]) {
         help();
         return 0;
     }
+    omp_set_num_threads(4);
     clock_t start = clock(), diff;
     solve(argv);
     diff = clock() - start;

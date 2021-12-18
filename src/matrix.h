@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <omp.h>
 typedef float db;
 
 clock_t clk;
@@ -222,6 +223,8 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     mshape(output, input->a, weight->a, input->c, input->d);
     mallo(output);
     // the axis of output
+    #pragma omp parallel shared(input, weight, bias, output) num_threads(4)
+    #pragma omp for schedule(guided)
     for (int oi = 0; oi < weight->a; ++oi)
         for (int oj = 0; oj < output->c; ++oj)
             for (int ok = 0; ok < output->d; ++ok) {
