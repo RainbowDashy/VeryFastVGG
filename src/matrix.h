@@ -2,8 +2,18 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef long double db;
+
+clock_t clk;
+void enter() {
+    clk = clock();
+}
+void leave(const char *msg) {
+    float t = (clock() - clk) / CLOCKS_PER_SEC;
+    printf("%s\nElapsed time: %f\n", msg, t);
+}
 
 typedef struct {
     int a, b, c, d;
@@ -81,17 +91,21 @@ void mprint(Matrix *m) {
 }
 
 void ReLU(Matrix *input, Matrix *output) {
+    enter();
     mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     for (int i = 0; i < msize(input); ++i) {
         output->v[i] = input->v[i] > 0 ? input->v[i] : 0;
     }
+    leave("ReLU");
 }
 
 void ReLUInplace(Matrix *input) {
+    enter();
     for (int i = 0; i < msize(input); ++i) {
         input->v[i] = input->v[i] > 0 ? input->v[i] : 0;
     }
+    leave("ReLUInplace");
 }
 
 void Dropout(Matrix *input, Matrix *output) {
@@ -128,6 +142,7 @@ db mvar(db *v, int size, db mean) {
 
 void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
                  Matrix *var, Matrix *output) {
+    enter();
     mshape(output, input->a, input->b, input->c, input->d);
     mallo(output);
     db eps = 1e-5;
@@ -140,9 +155,11 @@ void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
                            bias->v[idx];
         }
     }
+    leave("BatchNorm2d");
 }
 
 void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+    enter();
     mshape(output, input->a, input->b, input->c, weight->c);
     mallo(output);
     for (int i = 0; i < weight->c; ++i) {
@@ -150,6 +167,7 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
         for (int j = 0; j < weight->d; ++j)
             output->v[i] += weight->v[i * weight->d + j] * input->v[j];
     }
+    leave("Linear");
 }
 
 db max2(db a, db b) { return a > b ? a : b; }
@@ -158,6 +176,7 @@ db max4(db a, db b, db c, db d) { return max2(a, max2(b, max2(c, d))); }
 
 // kernel_size=2 stride=2
 void MaxPool2d(Matrix *input, Matrix *output) {
+    enter();
     mshape(output, input->a, input->b, input->c / 2, input->d / 2);
     mallo(output);
     int tot = 0;
@@ -172,11 +191,13 @@ void MaxPool2d(Matrix *input, Matrix *output) {
             }
         }
     }
+    leave("MaxPool2d");
 }
 
 // output_size = (7, 7)
 // NOT adaptive!
 void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
+    enter();
     mshape(output, input->a, input->b, 7, 7);
     mallo(output);
     int tot = 0;
@@ -194,9 +215,11 @@ void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
             }
         }
     }
+    leave("AdaptiveAvgPool2d");
 }
 
 void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+    enter();
     // n
     mshape(output, input->a, weight->a, input->c, input->d);
     mallo(output);
@@ -222,4 +245,5 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                         }
                 mset(output, 0, oi, oj, ok, sum);
             }
+    leave("Conv2d");
 }
