@@ -136,7 +136,7 @@ void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
          i += input->c * input->d, ++idx) {
         for (int j = i; j < i + input->c * input->d; ++j) {
             output->v[j] = (input->v[j] - mean->v[idx]) /
-                               (sqrt(var->v[idx]) + eps) * weight->v[idx] +
+                               sqrt(var->v[idx] + eps) * weight->v[idx] +
                            bias->v[idx];
         }
     }
