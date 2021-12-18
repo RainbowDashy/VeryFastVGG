@@ -59,4 +59,5 @@ build/
 
 # Data files
 data/*.txt
+data/*.bin
 data/*.png

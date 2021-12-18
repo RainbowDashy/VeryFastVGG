@@ -1,3 +1,4 @@
+from os import close
 from PIL import Image
 import numpy as np
 import sys
@@ -8,6 +9,8 @@ if __name__ == "__main__":
   output_path = sys.argv[2]
   img = Image.open(image_path).resize((224, 224))
   img = ToTensor()(img)
-  img = img.numpy()
-  img = img.flatten()
-  np.savetxt(output_path, img, newline=" ")
+  img = img.numpy().flatten().astype(np.float32)
+  buf = img.tobytes()
+  file = open(output_path, "wb")
+  file.write(buf)
+  file.close()

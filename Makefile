@@ -4,8 +4,8 @@ PYTHON = python3
 BUILD_DIR = build
 CMAKE_BUILD_TYPE ?= Debug
 
-WEIGHTS_PATH = data/weights.txt
-IMAGE_PATH = data/image.txt
+WEIGHTS_PATH = data/weights.bin
+IMAGE_PATH = data/image.bin
 OUTPUT_FILE = data/output.txt
 ORIGIN_IMAGE_PATH = data/image.png
 ORIGIN_IMAGE_URL = https://s3.amazonaws.com/model-server/inputs/kitten.jpg
