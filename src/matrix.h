@@ -5,6 +5,7 @@
 #include <time.h>
 #include <omp.h>
 #include <string.h>
+#include <immintrin.h>
 
 typedef float db;
 
@@ -284,20 +285,32 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     enter();
     mshape(output, 1, originalWeightA, originalInputC, originalInputD);
     mallo(output);
-    // the axis of output
-    #pragma omp parallel shared(input, newWeight, bias, output) num_threads(4)
+    __m256 avxSum, a, b;
+    #pragma omp parallel shared(input, newWeight, bias, output) private(a, b, avxSum) num_threads(4)
     #pragma omp for schedule(guided)
     // oa = 0
     for (int ob = 0; ob < output->b; ++ob)
         for (int oc = 0; oc < output->c; ++oc)
             for (int od = 0; od < output->d; ++od) {
                 db sum = bias->v[ob];
+                avxSum =  _mm256_setzero_ps();
                 // kernel 3 * 3
                 for (int wb = 0; wb < 3; ++wb)
-                    for (int wc = 0; wc < 3; ++wc)
-                        for (int wd = 0; wd < newWeight->d; ++wd)
+                    for (int wc = 0; wc < 3; ++wc) {
+                        int wd = 0;
+                        for (; wd + 4 < newWeight->d; wd += 8) {
+                            a = _mm256_loadu_ps(input->v + mpos(input, 0, oc + wb, od + wc, wd));
+                            b = _mm256_loadu_ps(newWeight->v + mpos(newWeight, ob, wb, wc, wd));
+                            avxSum = _mm256_fmadd_ps(a, b, avxSum);
+                        }
+                        for (; wd < newWeight->d; ++wd) {
                             sum += mget(input, 0, oc + wb, od + wc, wd) *
                                     mget(newWeight, ob, wb, wc, wd);
+                        }
+                    }
+                avxSum = _mm256_hadd_ps(avxSum, avxSum);
+                avxSum = _mm256_hadd_ps(avxSum, avxSum);
+                sum += avxSum[0] + avxSum[4];
                 mset(output, 0, ob, oc, od, sum);
             }
     leave("Conv2d");
