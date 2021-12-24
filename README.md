@@ -31,6 +31,10 @@ make CMAKE_BUILD_TYPE=Release
 ```shell
 make clean
 ```
+- comparing the result with pytorch's
+```shell
+make test
+```
 
 ## TODO
 - [x] Input & Output

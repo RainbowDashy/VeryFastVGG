@@ -78,7 +78,10 @@ void solve(const char **argv) {
     minit(bias, 1, 1, 1, 4096, &weightMem);
     Linear(input, weight, bias, output);
 
-    mprint(output);
+    FILE *outputFile = fopen(argv[3], "w");
+    for (int i = 0; i < msize(output); ++i)
+        fprintf(outputFile, "%.8f\n", output->v[i]);
+    fclose(outputFile);
 }
 
 int main(int argc, char const *argv[]) {
