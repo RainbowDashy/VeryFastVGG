@@ -176,6 +176,8 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     enter();
     mshape(output, input->a, input->b, input->c, weight->c);
     mallo(output);
+    #pragma omp parallel shared(input, weight, bias, output) num_threads(4)
+    #pragma omp for schedule(guided)
     for (int i = 0; i < weight->c; ++i) {
         output->v[i] = bias->v[i];
         for (int j = 0; j < weight->d; ++j)
