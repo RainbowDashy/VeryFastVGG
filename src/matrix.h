@@ -294,26 +294,35 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
             for (int od = 0; od < output->d; ++od) {
                 db sum = bias->v[ob];
                 avxSum =  _mm256_setzero_ps();
+                int wd;
                 // kernel 3 * 3
-                for (int wb = 0; wb < 3; ++wb)
-                    for (int wc = 0; wc < 3; ++wc) {
-                        int wd = 0;
-                        if (newWeight->d < 16) // only one case in data, branch prediction can handle this
-                            for (; wd < newWeight->d; ++wd)
-                                sum += mget(input, 0, oc + wb, od + wc, wd) *
-                                        mget(newWeight, ob, wb, wc, wd);
-                        else
-                            for (; wd < newWeight->d; wd += 16) {
-                                db *inputP = input->v + mpos(input, 0, oc + wb, od + wc, wd);
-                                db *weightP = newWeight->v + mpos(newWeight, ob, wb, wc, wd);
-                                a = _mm256_loadu_ps(inputP);
-                                b = _mm256_loadu_ps(weightP);
-                                avxSum = _mm256_fmadd_ps(a, b, avxSum);
-                                a = _mm256_loadu_ps(inputP + 8);
-                                b = _mm256_loadu_ps(weightP + 8);
-                                avxSum = _mm256_fmadd_ps(a, b, avxSum);
-                            }
-                    }
+                #define _unroll(wb, wc) ({ \
+                    wd = 0; \
+                    if (newWeight->d < 16) /*only one case in data, branch prediction can handle this*/ \
+                        for (; wd < newWeight->d; ++wd) \
+                            sum += mget(input, 0, oc + wb, od + wc, wd) * \
+                                    mget(newWeight, ob, wb, wc, wd); \
+                    else \
+                        for (; wd < newWeight->d; wd += 16) { \
+                            db *inputP = input->v + mpos(input, 0, oc + wb, od + wc, wd); \
+                            db *weightP = newWeight->v + mpos(newWeight, ob, wb, wc, wd); \
+                            a = _mm256_loadu_ps(inputP); \
+                            b = _mm256_loadu_ps(weightP); \
+                            avxSum = _mm256_fmadd_ps(a, b, avxSum); \
+                            a = _mm256_loadu_ps(inputP + 8); \
+                            b = _mm256_loadu_ps(weightP + 8); \
+                            avxSum = _mm256_fmadd_ps(a, b, avxSum); \
+                        } \
+                })
+                _unroll(0, 0);
+                _unroll(0, 1);
+                _unroll(0, 2);
+                _unroll(1, 0);
+                _unroll(1, 1);
+                _unroll(1, 2);
+                _unroll(2, 0);
+                _unroll(2, 1);
+                _unroll(2, 2);
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
                 sum += avxSum[0] + avxSum[4];
