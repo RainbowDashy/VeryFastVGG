@@ -330,5 +330,9 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                 sum += avxSum[0] + avxSum[4];
                 mset(output, 0, ob, oc, od, sum);
             }
+
+    // free memory
+    free(newWeight->v);
+    free(newWeight);
     leave("Conv2d");
 }
