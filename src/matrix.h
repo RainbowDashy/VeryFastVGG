@@ -298,15 +298,21 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                 for (int wb = 0; wb < 3; ++wb)
                     for (int wc = 0; wc < 3; ++wc) {
                         int wd = 0;
-                        for (; wd + 4 < newWeight->d; wd += 8) {
-                            a = _mm256_loadu_ps(input->v + mpos(input, 0, oc + wb, od + wc, wd));
-                            b = _mm256_loadu_ps(newWeight->v + mpos(newWeight, ob, wb, wc, wd));
-                            avxSum = _mm256_fmadd_ps(a, b, avxSum);
-                        }
-                        for (; wd < newWeight->d; ++wd) {
-                            sum += mget(input, 0, oc + wb, od + wc, wd) *
-                                    mget(newWeight, ob, wb, wc, wd);
-                        }
+                        if (newWeight->d < 16) // only one case in data, branch prediction can handle this
+                            for (; wd < newWeight->d; ++wd)
+                                sum += mget(input, 0, oc + wb, od + wc, wd) *
+                                        mget(newWeight, ob, wb, wc, wd);
+                        else
+                            for (; wd < newWeight->d; wd += 16) {
+                                db *inputP = input->v + mpos(input, 0, oc + wb, od + wc, wd);
+                                db *weightP = newWeight->v + mpos(newWeight, ob, wb, wc, wd);
+                                a = _mm256_loadu_ps(inputP);
+                                b = _mm256_loadu_ps(weightP);
+                                avxSum = _mm256_fmadd_ps(a, b, avxSum);
+                                a = _mm256_loadu_ps(inputP + 8);
+                                b = _mm256_loadu_ps(weightP + 8);
+                                avxSum = _mm256_fmadd_ps(a, b, avxSum);
+                            }
                     }
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
