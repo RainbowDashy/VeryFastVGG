@@ -298,11 +298,7 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                 // kernel 3 * 3
                 #define _unroll(wb, wc) ({ \
                     wd = 0; \
-                    if (newWeight->d < 16) /*only one case in data, branch prediction can handle this*/ \
-                        for (; wd < newWeight->d; ++wd) \
-                            sum += mget(input, 0, oc + wb, od + wc, wd) * \
-                                    mget(newWeight, ob, wb, wc, wd); \
-                    else \
+                    if (newWeight->d >= 16)  \
                         for (; wd < newWeight->d; wd += 16) { \
                             db *inputP = input->v + mpos(input, 0, oc + wb, od + wc, wd); \
                             db *weightP = newWeight->v + mpos(newWeight, ob, wb, wc, wd); \
@@ -313,6 +309,10 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                             b = _mm256_loadu_ps(weightP + 8); \
                             avxSum = _mm256_fmadd_ps(a, b, avxSum); \
                         } \
+                    else /*only one case in data, branch prediction can handle this*/ \
+                        for (; wd < newWeight->d; ++wd) \
+                            sum += mget(input, 0, oc + wb, od + wc, wd) * \
+                                    mget(newWeight, ob, wb, wc, wd); \
                 })
                 _unroll(0, 0);
                 _unroll(0, 1);
