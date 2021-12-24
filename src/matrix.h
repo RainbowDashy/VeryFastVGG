@@ -160,9 +160,11 @@ void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
     // this should only work when input->a = 1
     for (int i = 0, idx = 0; i < msize(input);
          i += input->c * input->d, ++idx) {
+        // loop invariant
+        db sq = sqrt(var->v[idx] + eps);
         for (int j = i; j < i + input->c * input->d; ++j) {
             output->v[j] = (input->v[j] - mean->v[idx]) /
-                               sqrt(var->v[idx] + eps) * weight->v[idx] +
+                               sq * weight->v[idx] +
                            bias->v[idx];
         }
     }
