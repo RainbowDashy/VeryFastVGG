@@ -231,41 +231,74 @@ void AdaptiveAvgPool2d(Matrix *input, Matrix *output) {
     leave("AdaptiveAvgPool2d");
 }
 
-void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+void Padding(Matrix *input, Matrix *output) {
     enter();
-    // n
-    mshape(output, input->a, weight->a, input->c, input->d);
+    mshape(output, input->a, input->b, input->c + 2, input->d + 2);
+    mallo(output);
+    for (int i = 0; i < output->a; ++i)
+        for (int j = 0; j < output->b; ++j)
+            for (int k = 0; k < output->c; ++k)
+                for (int l = 0; l < output->d; ++l) {
+                    if (k == 0 || k == output->c - 1 ||
+                        l == 0 || l == output->d - 1)
+                        mset(output, i, j, k, l, 0);
+                    else
+                        mset(output, i, j, k, l, mget(input, i, j, k - 1, l - 1));
+                }
+    leave("Padding");
+}
+
+// a b c d -> a c d b
+void Transpose(Matrix *input, Matrix *output) {
+    enter();
+    mshape(output, input->a, input->c, input->d, input->b);
+    mallo(output);
+    for (int i = 0; i < output->a; ++i)
+        for (int j = 0; j < output->b; ++j)
+            for (int k = 0; k < output->c; ++k)
+                for (int l = 0; l < output->d; ++l) {
+                    mset(output, i, j, k, l, mget(input, i, l, j, k));
+                }
+    leave("Transpose");
+}
+
+// stride = 1, kernel = 3 * 3
+void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
+    // orginal input c and input d
+    int originalInputC = input->c;
+    int originalInputD = input->d;
+    // orignal weight a
+    int originalWeightA = weight->a;
+
+    // padding
+    Padding(input, output);
+    mswap(&input, &output);
+    // transpose input
+    Transpose(input, output);
+    mswap(&input, &output);
+    // transpose weight
+    Matrix *newWeight = mnew(1);
+    Transpose(weight, newWeight);
+
+    // conv2d
+    enter();
+    mshape(output, 1, originalWeightA, originalInputC, originalInputD);
     mallo(output);
     // the axis of output
-    #pragma omp parallel shared(input, weight, bias, output) num_threads(4)
+    #pragma omp parallel shared(input, newWeight, bias, output) num_threads(4)
     #pragma omp for schedule(guided)
-    for (int oi = 0; oi < weight->a; ++oi)
-        for (int oj = 0; oj < output->c; ++oj)
-            for (int ok = 0; ok < output->d; ++ok) {
-                db sum = bias->v[oi];
-                // the axis of weight
-                for (int ii = 0; ii < weight->b; ++ii) {
-                    #define _unroll(uj, uk) ({                          \
-                        int jj = uj, kk = uk;                           \
-                        if (oj + jj == 0 || oj + jj == input->c + 1 ||  \
-                            ok + kk == 0 || ok + kk == input->d + 1) {  \
-                        } else {                                        \
-                            sum += mget(input, 0, ii, oj + jj - 1,      \
-                                        ok + kk - 1) *                  \
-                                    mget(weight, oi, ii, jj, kk);       \
-                        }                                               \
-                    })
-                    _unroll(0, 0);
-                    _unroll(0, 1);
-                    _unroll(0, 2);
-                    _unroll(1, 0);
-                    _unroll(1, 1);
-                    _unroll(1, 2);
-                    _unroll(2, 0);
-                    _unroll(2, 1);
-                    _unroll(2, 2);
-                }
-                mset(output, 0, oi, oj, ok, sum);
+    // oa = 0
+    for (int ob = 0; ob < output->b; ++ob)
+        for (int oc = 0; oc < output->c; ++oc)
+            for (int od = 0; od < output->d; ++od) {
+                db sum = bias->v[ob];
+                // kernel 3 * 3
+                for (int wb = 0; wb < 3; ++wb)
+                    for (int wc = 0; wc < 3; ++wc)
+                        for (int wd = 0; wd < newWeight->d; ++wd)
+                            sum += mget(input, 0, oc + wb, od + wc, wd) *
+                                    mget(newWeight, ob, wb, wc, wd);
+                mset(output, 0, ob, oc, od, sum);
             }
     leave("Conv2d");
 }
