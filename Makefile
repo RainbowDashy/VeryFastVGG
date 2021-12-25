@@ -3,6 +3,8 @@ PYTHON = python3
 
 BUILD_DIR = build
 CMAKE_BUILD_TYPE ?= Release
+OMP_METHOD ?= static
+OMP_STRIDE ?= 1
 
 WEIGHTS_PATH = data/weights.bin
 IMAGE_PATH = data/image.bin
@@ -19,7 +21,7 @@ build: configure
 	cmake --build $(BUILD_DIR)
 
 configure:
-	cmake -B $(BUILD_DIR) -DCMAKE_C_COMPILER=$(CC) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
+	cmake -B $(BUILD_DIR) -DCMAKE_C_COMPILER=$(CC) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DOMP_METHOD=$(OMP_METHOD) -DOMP_STRIDE=$(OMP_STRIDE)
 
 clean:
 	rm -rf $(BUILD_DIR)

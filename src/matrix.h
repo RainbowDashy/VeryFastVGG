@@ -6,8 +6,13 @@
 #include <omp.h>
 #include <string.h>
 #include <immintrin.h>
+
+#ifndef OMP_METHOD
 #define OMP_METHOD static
+#endif
+#ifndef OMP_STRIDE
 #define OMP_STRIDE 1
+#endif
 
 typedef float db;
 
