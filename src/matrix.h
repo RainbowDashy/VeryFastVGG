@@ -6,6 +6,8 @@
 #include <omp.h>
 #include <string.h>
 #include <immintrin.h>
+#define OMP_METHOD static
+#define OMP_STRIDE 1
 
 typedef float db;
 
@@ -177,7 +179,7 @@ void Linear(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     mshape(output, input->a, input->b, input->c, weight->c);
     mallo(output);
     #pragma omp parallel shared(input, weight, bias, output) num_threads(4)
-    #pragma omp for schedule(guided)
+    #pragma omp for schedule(OMP_METHOD, OMP_STRIDE)
     for (int i = 0; i < weight->c; ++i) {
         output->v[i] = bias->v[i];
         for (int j = 0; j < weight->d; ++j)
@@ -289,7 +291,7 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     mallo(output);
     __m256 avxSum, a, b;
     #pragma omp parallel shared(input, newWeight, bias, output) private(a, b, avxSum) num_threads(4)
-    #pragma omp for schedule(guided)
+    #pragma omp for schedule(OMP_METHOD, OMP_STRIDE)
     // oa = 0
     for (int ob = 0; ob < output->b; ++ob)
         for (int oc = 0; oc < output->c; ++oc)

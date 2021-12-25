@@ -50,7 +50,7 @@ make test
 - [x] Openmp
 - [x] AVX
 - [x] Loop unroll
-- [ ] Way to search optimal parameters
+- [x] Way to search optimal parameters
 ## Reference
 
 https://notes.sjtu.edu.cn/s/xegV8P0H-
