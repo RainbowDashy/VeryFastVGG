@@ -12,7 +12,6 @@ void help() {
 void solve(const char **argv) {
     FILE *weightFD = fopen(argv[1], "r");
     FILE *inputFD = fopen(argv[2], "r");
-    FILE *outputFD = fopen(argv[3], "w");
 
     Matrix *input = mnew(), *weight = mnew(), *bias = mnew(), *output = mnew();
     Matrix *mean = mnew(), *var = mnew();
@@ -68,7 +67,10 @@ void solve(const char **argv) {
     minit(bias, 1, 1, 1, 4096, weightFD);
     Linear(input, weight, bias, output);
 
-    mprint(output);
+    FILE *outputFile = fopen(argv[3], "w");
+    for (int i = 0; i < msize(output); ++i)
+        fprintf(outputFile, "%.8f\n", output->v[i]);
+    fclose(outputFile);
 }
 
 int main(int argc, char const *argv[]) {
