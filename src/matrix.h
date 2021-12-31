@@ -143,22 +143,6 @@ void DropoutInplace(Matrix *input) {
     }
 }
 
-db mmean(db *v, int size) {
-    db res = 0;
-    for (int i = 0; i < size; ++i) res += v[i];
-    res /= size;
-    return res;
-}
-
-db mvar(db *v, int size, db mean) {
-    db res = 0;
-    for (int i = 0; i < size; ++i) {
-        res += (v[i] - mean) * (v[i] - mean);
-    }
-    if (size > 1) res /= size - 1;
-    return res;
-}
-
 void BatchNorm2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *mean,
                  Matrix *var, Matrix *output) {
     enter();
