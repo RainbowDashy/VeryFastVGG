@@ -16,6 +16,7 @@
 
 typedef float db;
 
+// Helper functions for timing
 double clk;
 void enter() {
     clk = omp_get_wtime();
