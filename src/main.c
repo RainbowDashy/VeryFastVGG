@@ -69,7 +69,7 @@ void solve(const char **argv) {
 
     FILE *outputFile = fopen(argv[3], "w");
     for (int i = 0; i < msize(output); ++i)
-        fprintf(outputFile, "%.8f\n", output->v[i]);
+        fprintf(outputFile, "%.8Lf\n", output->v[i]);
     fclose(outputFile);
 }
 
