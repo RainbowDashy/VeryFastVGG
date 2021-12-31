@@ -294,15 +294,15 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
     enter();
     mshape(output, 1, originalWeightA, originalInputC, originalInputD);
     mallo(output);
-    __m256 avxSum, a, b;
-    #pragma omp parallel shared(input, newWeight, bias, output) private(a, b, avxSum) num_threads(4)
+    #pragma omp parallel shared(input, newWeight, bias, output) num_threads(4)
     #pragma omp for schedule(OMP_METHOD, OMP_STRIDE)
     // oa = 0
     for (int ob = 0; ob < output->b; ++ob)
         for (int oc = 0; oc < output->c; ++oc)
             for (int od = 0; od < output->d; ++od) {
                 db sum = bias->v[ob];
-                avxSum =  _mm256_setzero_ps();
+                __m256 avx1 =  _mm256_setzero_ps();
+                __m256 avx2 =  _mm256_setzero_ps();
                 int wd;
                 // kernel 3 * 3
                 #define _unroll(wb, wc) ({ \
@@ -311,12 +311,12 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                         for (; wd < newWeight->d; wd += 16) { \
                             db *inputP = input->v + mpos(input, 0, oc + wb, od + wc, wd); \
                             db *weightP = newWeight->v + mpos(newWeight, ob, wb, wc, wd); \
-                            a = _mm256_loadu_ps(inputP); \
-                            b = _mm256_loadu_ps(weightP); \
-                            avxSum = _mm256_fmadd_ps(a, b, avxSum); \
-                            a = _mm256_loadu_ps(inputP + 8); \
-                            b = _mm256_loadu_ps(weightP + 8); \
-                            avxSum = _mm256_fmadd_ps(a, b, avxSum); \
+                            __m256 a = _mm256_loadu_ps(inputP); \
+                            __m256 b = _mm256_loadu_ps(weightP); \
+                            avx1 = _mm256_fmadd_ps(a, b, avx1); \
+                            __m256 c = _mm256_loadu_ps(inputP + 8); \
+                            __m256 d = _mm256_loadu_ps(weightP + 8); \
+                            avx2 = _mm256_fmadd_ps(c, d, avx2); \
                         } \
                     else /*only one case in data, branch prediction can handle this*/ \
                         for (; wd < newWeight->d; ++wd) \
@@ -332,6 +332,7 @@ void Conv2d(Matrix *input, Matrix *weight, Matrix *bias, Matrix *output) {
                 _unroll(2, 0);
                 _unroll(2, 1);
                 _unroll(2, 2);
+                __m256 avxSum = _mm256_add_ps(avx1, avx2);
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
                 avxSum = _mm256_hadd_ps(avxSum, avxSum);
                 sum += avxSum[0] + avxSum[4];
